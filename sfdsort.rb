@@ -1,14 +1,18 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-prm = {order: 0, defaultFirst: false}
+prm = {order: nil, defaultFirst: false, glyphOrderFile: nil}
 opt = OptionParser.new
 opt.banner = "Usage: #{$0} [options] infile"
 opt.on('-e', '--encoding-order',     'Reorder glyphs by encoding (default)') {|v| prm[:order] = 0}
 opt.on('-u', '--unicode-order',      'Reorder glyphs by (primary) Unicode')  {|v| prm[:order] = 1}
 opt.on('-n', '--name-order',         'Reorder glyphs by name')               {|v| prm[:order] = 2}
+opt.on('-f', '--custom-order=FILENAME', 'Specify glyph order by file')       {|v| prm[:glyphOrderFile] = v.to_s}
 opt.on('-d', '--default-char-first', 'Reorder .notdef, .null, and nonmarkingreturn before all the others (in this order)') {|v| prm[:defaultFirst] = true}
 opt.parse!
+if prm[:order].nil? then
+	prm[:order] = 0 # default
+end
 
 def parseSfd(file)
 	lines = IO.readlines(file, chomp: true)
@@ -93,6 +97,14 @@ def reorderSfd(parsedData, prm)
 		}
 	when 2
 		parsedData[:order].sort_by! {|v| v[:name]}
+	end
+
+	unless prm[:glyphOrderFile].nil? then
+		IO.readlines(prm[:glyphOrderFile], chomp: true).reverse_each {|v|
+			unless moveGlyphToTop(parsedData, v) then
+				warn "Glyph \"#{v}\" not found\n"
+			end
+		}
 	end
 
 	if prm[:defaultFirst] then
