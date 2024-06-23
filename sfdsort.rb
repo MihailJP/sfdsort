@@ -8,7 +8,6 @@ opt.on('-e', '--encoding-order',     'Reorder glyphs by encoding (default)') {|v
 opt.on('-u', '--unicode-order',      'Reorder glyphs by (primary) Unicode')  {|v| prm[:order] = 1}
 opt.on('-n', '--name-order',         'Reorder glyphs by name')               {|v| prm[:order] = 2}
 opt.on('-d', '--default-char-first', 'Reorder .notdef, .null, and nonmarkingreturn before all the others (in this order)') {|v| prm[:defaultFirst] = true}
-opt.default_argv = ["--help"]
 opt.parse!
 
 def parseSfd(file)
