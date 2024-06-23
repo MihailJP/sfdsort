@@ -65,6 +65,16 @@ def outputSfd(parsedData)
 	print "EndChars\n"
 end
 
+def moveGlyphToTop(parsedData, glyphName)
+	if parsedData[:glyphs].key?(glyphName) then
+		i = (parsedData[:order].index {|g| g[:name] == glyphName})
+		parsedData[:order].unshift parsedData[:order].delete_at(i)
+		return glyphName
+	else
+		return nil
+	end
+end
+
 def reorderSfd(parsedData, prm)
 	case prm[:order]
 	when 0
@@ -86,12 +96,7 @@ def reorderSfd(parsedData, prm)
 	end
 
 	if prm[:defaultFirst] then
-		[".notdef", ".null", "nonmarkingreturn"].reverse_each do |v|
-			if parsedData[:glyphs].key?(v) then
-				i = (parsedData[:order].index {|g| g[:name] == v})
-				parsedData[:order].unshift parsedData[:order].delete_at(i)
-			end
-		end
+		[".notdef", ".null", "nonmarkingreturn"].reverse_each {|v| moveGlyphToTop(parsedData, v)}
 	end
 
 	return parsedData
