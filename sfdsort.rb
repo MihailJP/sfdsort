@@ -1,14 +1,24 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-prm = {order: nil, defaultFirst: false, glyphOrderFile: nil}
+$prm = {
+	order: nil,
+	defaultFirst: false,
+	glyphOrderFile: nil,
+	dropWinInfo: false,
+	dropFlagH: false,
+	dropFlagO: false,
+}
 opt = OptionParser.new
 opt.banner = "Usage: #{$0} [options] infile"
-opt.on('-e', '--encoding-order',     'Reorder glyphs by encoding (default)') {|v| prm[:order] = 0}
-opt.on('-u', '--unicode-order',      'Reorder glyphs by (primary) Unicode')  {|v| prm[:order] = 1}
-opt.on('-n', '--name-order',         'Reorder glyphs by name')               {|v| prm[:order] = 2}
-opt.on('-f', '--custom-order=FILENAME', 'Specify glyph order by file')       {|v| prm[:glyphOrderFile] = v.to_s}
-opt.on('-d', '--default-char-first', 'Reorder .notdef, .null, and nonmarkingreturn before all the others (in this order)') {|v| prm[:defaultFirst] = true}
+opt.on('-e', '--encoding-order',     'Reorder glyphs by encoding')          {|v| $prm[:order] = 0}
+opt.on('-u', '--unicode-order',      'Reorder glyphs by (primary) Unicode') {|v| $prm[:order] = 1}
+opt.on('-n', '--name-order',         'Reorder glyphs by name')              {|v| $prm[:order] = 2}
+opt.on('-f', '--custom-order=FILENAME', 'Specify glyph order by file')      {|v| $prm[:glyphOrderFile] = v.to_s}
+opt.on('-d', '--default-char-first', 'Reorder .notdef, .null, and nonmarkingreturn before all the others (in this order)') {|v| $prm[:defaultFirst] = true}
+opt.on('-w', '--drop-wininfo', 'Drop WinInfo') {|v| $prm[:dropWinInfo] = true}
+opt.on('--drop-hint-flag', 'Drop Flag H from all glyphs') {|v| $prm[:dropFlagH] = true}
+opt.on('--drop-open-flag', 'Drop Flag O from all glyphs') {|v| $prm[:dropFlagO] = true}
 opt.parse!
 
 def parseSfd(file)
@@ -30,8 +40,12 @@ def parseSfd(file)
 
 		if currentGlyph.nil? then
 		elsif currentGlyph == "" then
-			parsed[:header].push l
+			parsed[:header].push l unless ($prm[:dropWinInfo] and (l =~ /^WinInfo:/))
 		else
+			if l =~ /^Flags:/ then
+				l.sub!(/H/, "") if $prm[:dropFlagH] = true
+				l.sub!(/O/, "") if $prm[:dropFlagO] = true
+			end
 			parsed[:glyphs][currentGlyph].push l
 		end
 
@@ -76,8 +90,8 @@ def moveGlyphToTop(parsedData, glyphName)
 	end
 end
 
-def reorderSfd(parsedData, prm)
-	case prm[:order]
+def reorderSfd(parsedData)
+	case $prm[:order]
 	when 0
 		parsedData[:order].sort_by! {|v| v[:encoding]}
 	when 1
@@ -96,19 +110,19 @@ def reorderSfd(parsedData, prm)
 		parsedData[:order].sort_by! {|v| v[:name]}
 	end
 
-	unless prm[:glyphOrderFile].nil? then
-		IO.readlines(prm[:glyphOrderFile], chomp: true).reverse_each {|v|
+	unless $prm[:glyphOrderFile].nil? then
+		IO.readlines($prm[:glyphOrderFile], chomp: true).reverse_each {|v|
 			unless moveGlyphToTop(parsedData, v) then
 				warn "Glyph \"#{v}\" not found\n"
 			end
 		}
 	end
 
-	if prm[:defaultFirst] then
+	if $prm[:defaultFirst] then
 		[".notdef", ".null", "nonmarkingreturn"].reverse_each {|v| moveGlyphToTop(parsedData, v)}
 	end
 
 	return parsedData
 end
 
-outputSfd reorderSfd(parseSfd(ARGV[0]), prm)
+outputSfd reorderSfd(parseSfd(ARGV[0]))
