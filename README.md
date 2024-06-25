@@ -11,7 +11,7 @@ $ ./sfdsort.rb [options] infile > outfile
 
 ### Options
 
-- `-e`, `--encoding-order`: Reorders glyphs by encoding. This is the default option.
+- `-e`, `--encoding-order`: Reorders glyphs by encoding.
 - `-u`, `--unicode-order`: Reorders glyphs by Unicode codepoints. Alternative Unicode encodings are ignored. Such glyphs that Unicode encoding is -1 (none assigned) will be ordered after all the others.
 - `-n`, `--name-order`: Reorders glyphs by name.
 - `-f`, `--custom-order=FILENAME`: Specifies glyph order by file. The file must contain glyph names one per each line. Nonexistent glyph will be ignored (but you will be warned about it). Unspecified glyphs will be ordered after everything else. Use together with one of three options said above if you want to sort unspecified glyphs.

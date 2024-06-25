@@ -10,9 +10,6 @@ opt.on('-n', '--name-order',         'Reorder glyphs by name')               {|v
 opt.on('-f', '--custom-order=FILENAME', 'Specify glyph order by file')       {|v| prm[:glyphOrderFile] = v.to_s}
 opt.on('-d', '--default-char-first', 'Reorder .notdef, .null, and nonmarkingreturn before all the others (in this order)') {|v| prm[:defaultFirst] = true}
 opt.parse!
-if prm[:order].nil? then
-	prm[:order] = 0 # default
-end
 
 def parseSfd(file)
 	lines = IO.readlines(file, chomp: true)
