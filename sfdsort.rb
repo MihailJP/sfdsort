@@ -85,6 +85,7 @@ def outputSfd(parsedData)
 		end
 	end
 	print "EndChars\n"
+	print "EndSplineFont\n"
 end
 
 def moveGlyphToTop(parsedData, glyphName)
