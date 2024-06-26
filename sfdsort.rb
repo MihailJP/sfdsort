@@ -8,6 +8,7 @@ $prm = {
 	dropWinInfo: false,
 	dropFlagH: false,
 	dropFlagO: false,
+	deselectAll: false,
 }
 opt = OptionParser.new
 opt.banner = "Usage: #{$0} [options] infile"
@@ -19,6 +20,7 @@ opt.on('-d', '--default-char-first', 'Reorder .notdef, .null, and nonmarkingretu
 opt.on('-w', '--drop-wininfo', 'Drop WinInfo') {|v| $prm[:dropWinInfo] = true}
 opt.on('--drop-hint-flag', 'Drop Flag H from all glyphs') {|v| $prm[:dropFlagH] = true}
 opt.on('--drop-open-flag', 'Drop Flag O from all glyphs') {|v| $prm[:dropFlagO] = true}
+opt.on('--deselect-all', 'Deselect all points and references in all glyphs') {|v| $prm[:deselectAll] = true}
 opt.parse!
 
 def parseSfd(file)
@@ -67,12 +69,17 @@ def outputSfd(parsedData)
 	end
 	parsedData[:order].each do |g|
 		print "\n"
+		inSplineSet = false
 		parsedData[:glyphs][g[:name]].each do |l|
 			if l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
 				print "Encoding: #{$1} #{$2} #{glyphReorder[$3.to_i]}\n"
-			elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(.+)$/ then
-				print "Refer: #{glyphReorder[$1.to_i]} #{parsedData[:order][glyphReorder[$1.to_i]][:unicode]} #{$3}\n"
+			elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(.+)$/ then
+				print "Refer: #{glyphReorder[$1.to_i]} #{parsedData[:order][glyphReorder[$1.to_i]][:unicode]} #{$prm[:deselectAll] and $3 == "S" ? "N" : $3} #{$4}\n"
+			elsif $prm[:deselectAll] and inSplineSet and (l =~ /^(.*)\s+(\d+)$/) then
+				print "#{$1} #{$2.to_i & (~4)}\n"
 			else
+				inSplineSet = true if l == "SplineSet"
+				inSplineSet = false if l == "EndSplineSet"
 				print "#{l}\n"
 			end
 		end
