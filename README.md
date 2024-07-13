@@ -22,6 +22,6 @@ $ ./sfdsort.rb [options] infile > outfile
 #### Other options
 
 - `-w`, `--drop-wininfo`: Drops WinInfo
-- `--drop-hint-flag`: Drops Flag `H` from all glyphs
-- `--drop-open-flag`: Drops Flag `O` from all glyphs
-- `--deselect-all`: Deselect all points and references in all glyphs
+- `-H`, `--drop-hint-flag`: Drops Flag `H` from all glyphs
+- `-O`, `--drop-open-flag`: Drops Flag `O` from all glyphs
+- `-D`, `--deselect-all`: Deselect all points and references in all glyphs
