@@ -26,7 +26,7 @@ opt.parse!
 def parseSfd(file)
 	lines = IO.readlines(file, chomp: true)
 	raise "not a spline font database file" if lines[0] !~ /^SplineFontDB:/
-	parsed = {header: [], glyphs: {}, order: []}
+	parsed = {header: [], glyphs: {}, order: [], encodingIsOriginal: false}
 	currentGlyph = ""
 	codeData = {}
 	lines.each do |l|
@@ -38,6 +38,8 @@ def parseSfd(file)
 			codeData = {name: currentGlyph}
 		elsif l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
 			codeData.merge!({encoding: $1.to_i, unicode: $2.to_i, glyphOrder: $3.to_i})
+		elsif l =~ /^Encoding:\s+Original\s*$/ then
+			parsed[:encodingIsOriginal] = true
 		end
 
 		if currentGlyph.nil? then
@@ -72,7 +74,7 @@ def outputSfd(parsedData)
 		inSplineSet = false
 		parsedData[:glyphs][g[:name]].each do |l|
 			if l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
-				print "Encoding: #{$1} #{$2} #{glyphReorder[$3.to_i]}\n"
+				print "Encoding: #{parsedData[:encodingIsOriginal] ? glyphReorder[$3.to_i] : $1} #{$2} #{glyphReorder[$3.to_i]}\n"
 			elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(.+)$/ then
 				print "Refer: #{glyphReorder[$1.to_i]} #{parsedData[:order][glyphReorder[$1.to_i]][:unicode]} #{$prm[:deselectAll] and $3 == "S" ? "N" : $3} #{$4}\n"
 			elsif $prm[:deselectAll] and inSplineSet and (l =~ /^(.*)\s+(\d+)$/) then
