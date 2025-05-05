@@ -76,7 +76,7 @@ def outputSfd(parsedData)
 			if l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
 				print "Encoding: #{parsedData[:encodingIsOriginal] ? glyphReorder[$3.to_i] : $1} #{$2} #{glyphReorder[$3.to_i]}\n"
 			elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(.+)$/ then
-				print "Refer: #{glyphReorder[$1.to_i]} #{parsedData[:order][glyphReorder[$1.to_i]][:unicode]} #{$prm[:deselectAll] and $3 == "S" ? "N" : $3} #{$4}\n"
+				print "Refer: #{glyphReorder[$1.to_i]} #{parsedData[:order][glyphReorder[$1.to_i]][:unicode]} #{$prm[:deselectAll] && $3 == "S" ? "N" : $3} #{$4}\n"
 			elsif $prm[:deselectAll] and inSplineSet and (l =~ /^(.*)\s+(\d+)$/) then
 				print "#{$1} #{$2.to_i & (~4)}\n"
 			else
