@@ -16,7 +16,7 @@ opt.on('-e', '--encoding-order',     'Reorder glyphs by encoding')          {|v|
 opt.on('-u', '--unicode-order',      'Reorder glyphs by (primary) Unicode') {|v| $prm[:order] = 1}
 opt.on('-n', '--name-order',         'Reorder glyphs by name')              {|v| $prm[:order] = 2}
 opt.on('-f', '--custom-order=FILENAME', 'Specify glyph order by file')      {|v| $prm[:glyphOrderFile] = v.to_s}
-opt.on('-d', '--default-char-first', 'Reorder .notdef, .null, and nonmarkingreturn before all the others (in this order)') {|v| $prm[:defaultFirst] = true}
+opt.on('-d', '--default-char-first', 'Reorder .notdef, .null, CR (or nonmarkingreturn), and space before all the others (in this order)') {|v| $prm[:defaultFirst] = true}
 opt.on('-w', '--drop-wininfo', 'Drop WinInfo') {|v| $prm[:dropWinInfo] = true}
 opt.on('-H', '--drop-hint-flag', 'Drop Flag H from all glyphs') {|v| $prm[:dropFlagH] = true}
 opt.on('-O', '--drop-open-flag', 'Drop Flag O from all glyphs') {|v| $prm[:dropFlagO] = true}
@@ -129,7 +129,7 @@ def reorderSfd(parsedData)
 	end
 
 	if $prm[:defaultFirst] then
-		[".notdef", ".null", "nonmarkingreturn"].reverse_each {|v| moveGlyphToTop(parsedData, v)}
+		[".notdef", ".null", "CR", "nonmarkingreturn", "space"].reverse_each {|v| moveGlyphToTop(parsedData, v)}
 	end
 
 	return parsedData
