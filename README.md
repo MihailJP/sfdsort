@@ -33,3 +33,14 @@ $ ./sfdsort.rb [options] infile > outfile
 - `-H`, `--drop-hint-flag`: Drops Flag `H` from all glyphs
 - `-O`, `--drop-open-flag`: Drops Flag `O` from all glyphs
 - `-D`, `--deselect-all`: Deselect all points and references in all glyphs
+- `-R`, `--decompose-nested-references`: Decompose nested references into
+  single-level ones
+
+> [!WARNING]
+> Currently `--decompose-nested-references` drops contours if such glyphs that
+> have both contours and nested references. You will be warned about such
+> glyphs.
+
+> [!NOTE]
+> Decomposing nested references may cause unused glyphs. SFDSort will not drop
+> such glyphs.
