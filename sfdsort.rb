@@ -144,10 +144,17 @@ def decomposeNestedGlyphs(parsedData)
 					end
 					refs[glyphOrder][:refs].push({
 						glyphId: $1.to_i, unicode: $2.to_i,
-						matrix: [$4.to_i, $5.to_i, $6.to_i, $7.to_i, $8.to_i, $9.to_i],
+						matrix: [
+							$4.to_i == $4.to_f ? $4.to_i : $4.to_f,
+							$5.to_i == $5.to_f ? $5.to_i : $5.to_f,
+							$6.to_i == $6.to_f ? $6.to_i : $6.to_f,
+							$7.to_i == $7.to_f ? $7.to_i : $7.to_f,
+							$8.to_i == $8.to_f ? $8.to_i : $8.to_f,
+							$9.to_i == $9.to_f ? $9.to_i : $9.to_f,
+						],
 						flags: $10
 					})
-					warn "Glyph 'g[:name]' has both contours and references. Contours will be dropped." unless splines.empty?
+					warn "Glyph '#{g[:name]}' has both contours and references. Contours will be dropped." unless splines.empty?
 				elsif inSplineDefinition then
 					splines.push l if inForegroundLayer
 				end
