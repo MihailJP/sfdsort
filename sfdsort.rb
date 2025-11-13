@@ -102,6 +102,10 @@ def moveGlyphToTop(parsedData, glyphName)
 	end
 end
 
+def toval(strval)
+	return strval.to_i == strval.to_f ? strval.to_i : strval.to_f
+end
+
 def matprod(mat1, mat2)
 	#
 	# a1 a2 0   b1 b2 0     a1b1+a2b3    a1b2+a2b4    0
@@ -118,49 +122,84 @@ def matprod(mat1, mat2)
 	]
 end
 
+def affinetransform(x, y, mat)
+	#
+	#         m1 m2 0
+	# x y 1   m3 m4 0  =  m1x+m3y+m5 m2x+m4y+m6 1
+	#         m5 m6 1
+	#
+	return [mat[0] * x + mat[2] * y + mat[4], mat[1] * x + mat[3] * y + mat[5]]
+end
+
+def transformContours(contours, matrix)
+	newContours = []
+	contours.each do |l|
+		if l =~ /^(\s*)(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(\D.*)$/ then # line or beginning
+			newCoord = affinetransform(toval($2), toval($3), matrix)
+			newContours.push "#{$1}#{newCoord[0]} #{newCoord[1]} #{$4}"
+		elsif l =~ /^(\s*)(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(\D.*)$/ then # quadratic
+			newCoord1 = affinetransform(toval($2), toval($3), matrix)
+			newCoord2 = affinetransform(toval($4), toval($5), matrix)
+			newContours.push "#{$1}#{newCoord1[0]} #{newCoord1[1]} #{newCoord2[0]} #{newCoord2[1]} #{$6}"
+		elsif l =~ /^(\s*)(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(\D.*)$/ then # cubic
+			newCoord1 = affinetransform(toval($2), toval($3), matrix)
+			newCoord2 = affinetransform(toval($4), toval($5), matrix)
+			newCoord3 = affinetransform(toval($6), toval($7), matrix)
+			newContours.push "#{$1}#{newCoord1[0]} #{newCoord1[1]} #{newCoord2[0]} #{newCoord2[1]} #{newCoord3[0]} #{newCoord3[1]} #{$8}"
+		else # malformed
+			warn "Malformed spline definition: #{l}"
+			newContours.push l
+		end
+	end
+	return newContours
+end
+
 def decomposeNestedGlyphs(parsedData)
 	if $prm[:nestedRefs] then
+		# Parse references
 		refs = {}
 		parsedData[:order].each do |g|
 			glyphOrder = nil
 			splines = []
-			inForegroundLayer = false
+			layers = 2
+			currentLayer = 0
 			inSplineDefinition = false
 			parsedData[:glyphs][g[:name]].each do |l|
 				if l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
 					glyphOrder = $3.to_i
+				elsif l =~ /^LayerCount: (\d+)$/ then
+					layers = $1.to_i
+					splines = Array.new(layers) {[]}
+				elsif l =~ /^Back$/ then
+					currentLayer = 0
+					inSplineDefinition = false
 				elsif l =~ /^Fore$/ then
-					inForegroundLayer = true
+					currentLayer = 1
+					inSplineDefinition = false
+				elsif l =~ /^Layer: (\d+)$/ then
+					currentLayer = $1.to_i
+					inSplineDefinition = false
 				elsif l =~ /^SplineSet$/ then
-					splines.push l if inForegroundLayer
 					inSplineDefinition = true
 				elsif l =~ /^EndSplineSet$/ then
-					splines.push l if inForegroundLayer
 					inSplineDefinition = false
-					inForegroundLayer = false
 				elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(.+)$/ then
+					inSplineDefinition = false
 					if not refs.key?(glyphOrder) then
 						refs[glyphOrder] = {splines: splines, refs: []}
 					end
 					refs[glyphOrder][:refs].push({
 						glyphId: $1.to_i, unicode: $2.to_i,
-						matrix: [
-							$4.to_i == $4.to_f ? $4.to_i : $4.to_f,
-							$5.to_i == $5.to_f ? $5.to_i : $5.to_f,
-							$6.to_i == $6.to_f ? $6.to_i : $6.to_f,
-							$7.to_i == $7.to_f ? $7.to_i : $7.to_f,
-							$8.to_i == $8.to_f ? $8.to_i : $8.to_f,
-							$9.to_i == $9.to_f ? $9.to_i : $9.to_f,
-						],
+						matrix: [toval($4), toval($5), toval($6), toval($7), toval($8), toval($9)],
 						flags: $10
 					})
-					warn "Glyph '#{g[:name]}' has both contours and references. Contours will be dropped." unless splines.empty?
 				elsif inSplineDefinition then
-					splines.push l if inForegroundLayer
+					splines[currentLayer].push l
 				end
 			end
 		end
 
+		# Dereference
 		nestFound = false
 		begin
 			nestFound = false
@@ -174,6 +213,14 @@ def decomposeNestedGlyphs(parsedData)
 								matrix: matprod(subref[:matrix], rr[:matrix]),
 								flags: subref[:flags]
 							})
+							if refs.key?(subref[:glyphId])
+								numOfLayers1 = r[:splines].length
+								numOfLayers2 = refs[rr[:glyphId]][:splines].length
+								warn "Number of layers mismatch: #{numOfLayers1} for glyph #{glyphId} and #{numOfLayers2} for glyph #{subref[:glyphId]}" if numOfLayers1 != numOfLayers2
+								for layer in 0...([numOfLayers1, numOfLayers2].min) # unlikely mismatch
+									r[:splines][layer] += transformContours(refs[rr[:glyphId]][:splines][layer], rr[:matrix])
+								end
+							end
 						end
 						nestFound = true
 					else
@@ -184,19 +231,72 @@ def decomposeNestedGlyphs(parsedData)
 			end
 		end while nestFound
 
+		# Clear layers
+		refs.each do |glyphId, r|
+			layers = 2
+			currentLayer = 0
+			inSplineDefinition = false
+			currentGlyph = parsedData[:glyphs][parsedData[:order][glyphId][:name]]
+			for i in 0...(currentGlyph.length)
+				l = currentGlyph[i]
+				if l =~ /^LayerCount: (\d+)$/ then
+					layers = $1.to_i
+				elsif l =~ /^Back$/ then
+					currentLayer = 0
+					inSplineDefinition = false
+					currentGlyph[i] = ""
+				elsif l =~ /^Fore$/ then
+					currentLayer = 1
+					inSplineDefinition = false
+					currentGlyph[i] = ""
+				elsif l =~ /^Layer: (\d+)$/ then
+					currentLayer = $1.to_i
+					inSplineDefinition = false
+					currentGlyph[i] = ""
+				elsif l =~ /^SplineSet$/ then
+					inSplineDefinition = true
+					currentGlyph[i] = ""
+				elsif l =~ /^EndSplineSet$/ then
+					inSplineDefinition = false
+					currentGlyph[i] = ""
+				elsif inSplineDefinition then
+					currentGlyph[i] = ""
+				end
+			end
+		end
+
+		# Update glyphs
 		parsedData[:order].each do |g|
 			newGlyph = []
 			glyphOrder = nil
+			layers = 2
 			parsedData[:glyphs][g[:name]].each do |l|
-				if l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
+				if l == "" then
+					# skip
+				elsif l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
 					glyphOrder = $3.to_i
 					newGlyph.push l
+				elsif l =~ /^LayerCount: (\d+)$/ then
+					layers = $1.to_i
+					newGlyph.push l
+					if refs.key?(glyphOrder) then
+						for layer in 0...layers
+							unless refs[glyphOrder][:splines][layer].empty?
+								newGlyph.push layer == 0 ? "Back" : layer == 1 ? "Fore" : "Layer: #{layer}"
+								newGlyph.push "SplineSet"
+								newGlyph += refs[glyphOrder][:splines][layer]
+								newGlyph.push "EndSplineSet"
+							end
+						end
+					end
+					#newGlyph.push "Back"
+					#newGlyph.push "Fore"
 				elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(.+)$/ then
 					newGlyph.push l unless refs.key?(glyphOrder)
 				elsif l =~ /^EndChar$/ then
 					if refs.key?(glyphOrder) then
 						refs[glyphOrder][:refs].each do |r|
-							newGlyph.push "Refer: #{r[:glyphId]} #{r[:unicode]} N #{r[:matrix][0]} #{r[:matrix][1]} #{r[:matrix][2]} #{r[:matrix][3]} #{r[:matrix][4]} #{r[:matrix][5]} #{r[:flags]}\n"
+							newGlyph.push "Refer: #{r[:glyphId]} #{r[:unicode]} N #{r[:matrix][0]} #{r[:matrix][1]} #{r[:matrix][2]} #{r[:matrix][3]} #{r[:matrix][4]} #{r[:matrix][5]} #{r[:flags]}"
 						end
 					end
 					newGlyph.push l
@@ -233,7 +333,7 @@ def reorderSfd(parsedData)
 	unless $prm[:glyphOrderFile].nil? then
 		IO.readlines($prm[:glyphOrderFile], chomp: true).reverse_each {|v|
 			unless moveGlyphToTop(parsedData, v) then
-				warn "Glyph \"#{v}\" not found\n"
+				warn "Glyph \"#{v}\" not found"
 			end
 		}
 	end

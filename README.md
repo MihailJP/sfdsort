@@ -36,11 +36,6 @@ $ ./sfdsort.rb [options] infile > outfile
 - `-R`, `--decompose-nested-references`: Decompose nested references into
   single-level ones
 
-> [!WARNING]
-> Currently `--decompose-nested-references` drops referred contours if a glyph
-> directly or indirectly refers such glyphs that both contours and nested
-> references. You will be warned about such glyphs.
-
 > [!NOTE]
 > Decomposing nested references may cause unused glyphs. SFDSort will not drop
 > such glyphs.
