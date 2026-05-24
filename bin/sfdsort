@@ -32,4 +32,4 @@ opt.on('-D', '--deselect-all', 'Deselect all points and references in all glyphs
 opt.on('-R', '--decompose-nested-references', 'Decompose nested references into single-level ones') {|v| $prm[:nestedRefs] = true}
 opt.parse!
 
-outputSfd reorderSfd(decomposeNestedGlyphs(parseSfd(ARGV[0])))
+SFDSort.main(ARGV[0])

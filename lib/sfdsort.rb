@@ -3,11 +3,13 @@
 require_relative "sfdsort/version"
 
 module SFDSort
-  class Error < StandardError; end
+  class InvalidFileError < StandardError; end
+
+  module_function
 
   def parseSfd(file)
     lines = IO.readlines(file, chomp: true)
-    raise "not a spline font database file" if lines[0] !~ /^SplineFontDB:/
+    raise InvalidFileError("not a spline font database file") if lines[0] !~ /^SplineFontDB:/
     parsed = {header: [], glyphs: {}, order: [], encodingIsOriginal: false}
     currentGlyph = ""
     codeData = {}
@@ -325,4 +327,7 @@ module SFDSort
     return parsedData
   end
 
+  def main(sfdPath)
+    outputSfd reorderSfd(decomposeNestedGlyphs(parseSfd(sfdPath)))
+  end
 end
