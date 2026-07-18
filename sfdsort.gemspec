@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Reorders glyphs in a spline font database file (of Fontforge)"
   #spec.description = "TODO: Write a longer description or delete this line."
   spec.homepage = "https://github.com/MihailJP/sfdsort"
-  spec.required_ruby_version = ">= 3.1.0"
+  spec.required_ruby_version = ">= 2.4.0"
   spec.licenses = ["Unlicense"]
 
   #spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
