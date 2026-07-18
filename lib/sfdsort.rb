@@ -7,10 +7,28 @@ module SFDSort
 
   module_function
 
+  def blankParsed
+    return {header: [], glyphs: {}, order: [], encodingIsOriginal: false}
+  end
+
+  def defaultSettings
+    return {
+      order: nil,
+      defaultFirst: false,
+      glyphOrderFile: nil,
+      dropWinInfo: false,
+      dropFlagH: false,
+      dropFlagO: false,
+      deselectAll: false,
+      nestedRefs: false,
+      sortOtfFeatName: false,
+    }
+  end
+
   def parseSfd(file)
     lines = IO.readlines(file, chomp: true)
     raise InvalidFileError("not a spline font database file") if lines[0] !~ /^SplineFontDB:/
-    parsed = {header: [], glyphs: {}, order: [], encodingIsOriginal: false}
+    parsed = blankParsed
     currentGlyph = ""
     codeData = {}
     lines.each do |l|

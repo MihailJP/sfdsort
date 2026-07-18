@@ -8,17 +8,7 @@ require "sfdsort"
 # with your gem easier. You can also use a different console, if you like.
 
 require 'optparse'
-$prm = {
-	order: nil,
-	defaultFirst: false,
-	glyphOrderFile: nil,
-	dropWinInfo: false,
-	dropFlagH: false,
-	dropFlagO: false,
-	deselectAll: false,
-	nestedRefs: false,
-	sortOtfFeatName: false,
-}
+$prm = SFDSort.defaultSettings
 opt = OptionParser.new
 opt.banner = "Usage: #{$0} [options] infile"
 opt.on('-e', '--encoding-order',     'Reorder glyphs by encoding')          {|v| $prm[:order] = 0}
