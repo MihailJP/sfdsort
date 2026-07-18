@@ -241,24 +241,24 @@ module SFDSort
 
       # Clear layers
       refs.each do |glyphId, r|
-        layers = 2
-        currentLayer = 0
+        # layers = 2
+        # currentLayer = 0
         inSplineDefinition = false
         currentGlyph = parsedData[:glyphs][parsedData[:order][glyphId][:name]]
         for i in 0...(currentGlyph.length)
           l = currentGlyph[i]
           if l =~ /^LayerCount: (\d+)$/ then
-            layers = $1.to_i
+            # layers = $1.to_i
           elsif l =~ /^Back$/ then
-            currentLayer = 0
+            # currentLayer = 0
             inSplineDefinition = false
             currentGlyph[i] = ""
           elsif l =~ /^Fore$/ then
-            currentLayer = 1
+            # currentLayer = 1
             inSplineDefinition = false
             currentGlyph[i] = ""
           elsif l =~ /^Layer: (\d+)$/ then
-            currentLayer = $1.to_i
+            # currentLayer = $1.to_i
             inSplineDefinition = false
             currentGlyph[i] = ""
           elsif l =~ /^SplineSet$/ then
