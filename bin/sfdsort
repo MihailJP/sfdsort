@@ -17,6 +17,7 @@ $prm = {
 	dropFlagO: false,
 	deselectAll: false,
 	nestedRefs: false,
+	sortOtfFeatName: false,
 }
 opt = OptionParser.new
 opt.banner = "Usage: #{$0} [options] infile"
@@ -30,6 +31,7 @@ opt.on('-H', '--drop-hint-flag', 'Drop Flag H from all glyphs') {|v| $prm[:dropF
 opt.on('-O', '--drop-open-flag', 'Drop Flag O from all glyphs') {|v| $prm[:dropFlagO] = true}
 opt.on('-D', '--deselect-all', 'Deselect all points and references in all glyphs') {|v| $prm[:deselectAll] = true}
 opt.on('-R', '--decompose-nested-references', 'Decompose nested references into single-level ones') {|v| $prm[:nestedRefs] = true}
+opt.on('-s', '--sort-otf-feat-name', 'Sort OtfFeatName entries (labels for ssXX features)') {|v| $prm[:sortOtfFeatName] = true}
 opt.parse!
 
 SFDSort.main(ARGV[0])

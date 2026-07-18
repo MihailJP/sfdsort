@@ -43,6 +43,7 @@ sfdsort [options] infile > outfile
 - `-D`, `--deselect-all`: Deselect all points and references in all glyphs
 - `-R`, `--decompose-nested-references`: Decompose nested references into
   single-level ones
+- `-s`, `--sort-otf-feat-name`: Sort `OtfFeatName` entries (labels for `ssXX` features)
 
 > [!NOTE]
 > Decomposing nested references may cause unused glyphs. SFDSort will not drop

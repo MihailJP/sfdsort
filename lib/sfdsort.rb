@@ -74,6 +74,32 @@ module SFDSort
     print "EndSplineFont\n"
   end
 
+  def sortOtfFeatName(parsedData)
+    if $prm[:sortOtfFeatName] then
+      newHeader = []
+      otfFeatures = []
+      parsedData[:header].each do |l|
+        if l =~ /^OtfFeatName:/ then
+          otfFeatures.push l
+        else
+          unless otfFeatures.empty?
+            newHeader += otfFeatures.sort {|d1, d2|
+              w1 = d1.split(' ', 4)
+              w2 = d2.split(' ', 4)
+              res = w1[1] <=> w2[1]
+              res = w1[2].to_i <=> w2[2].to_i if res == 0
+              res
+            }
+            otfFeatures.clear
+          end
+          newHeader.push l
+        end
+      end
+      parsedData[:header] = newHeader
+    end
+    return parsedData
+  end
+
   def moveGlyphToTop(parsedData, glyphName)
     if parsedData[:glyphs].key?(glyphName) then
       i = (parsedData[:order].index {|g| g[:name] == glyphName})
@@ -328,6 +354,6 @@ module SFDSort
   end
 
   def main(sfdPath)
-    outputSfd reorderSfd(decomposeNestedGlyphs(parseSfd(sfdPath)))
+    outputSfd sortOtfFeatName(reorderSfd(decomposeNestedGlyphs(parseSfd(sfdPath))))
   end
 end
