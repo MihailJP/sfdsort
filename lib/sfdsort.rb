@@ -31,8 +31,8 @@ module SFDSort
         parsed[:header].push l unless ($prm[:dropWinInfo] and (l =~ /^WinInfo:/))
       else
         if l =~ /^Flags:/ then
-          l.sub!(/H/, "") if $prm[:dropFlagH] = true
-          l.sub!(/O/, "") if $prm[:dropFlagO] = true
+          l.sub!(/H/, "") if $prm[:dropFlagH] == true
+          l.sub!(/O/, "") if $prm[:dropFlagO] == true
         end
         parsed[:glyphs][currentGlyph].push l
       end
