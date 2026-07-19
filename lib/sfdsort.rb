@@ -226,42 +226,47 @@ module SFDSort
     return refs
   end
 
+  def dereferenceNestedRefs!(refs)
+    # Dereference
+    nestFound = false
+    begin
+      nestFound = false
+      refs.each do |glyphId, r|
+        newref = []
+        r[:refs].each do |rr|
+          if refs.key?(rr[:glyphId]) then
+            refs[rr[:glyphId]][:refs].each do |subref|
+              newref.push({
+                glyphId: subref[:glyphId], unicode: subref[:unicode],
+                matrix: matprod(subref[:matrix], rr[:matrix]),
+                flags: subref[:flags]
+              })
+              if refs.key?(subref[:glyphId])
+                numOfLayers1 = r[:splines].length
+                numOfLayers2 = refs[rr[:glyphId]][:splines].length
+                warn "Number of layers mismatch: #{numOfLayers1} for glyph #{glyphId} and #{numOfLayers2} for glyph #{subref[:glyphId]}" if numOfLayers1 != numOfLayers2
+                for layer in 0...([numOfLayers1, numOfLayers2].min) # unlikely mismatch
+                  r[:splines][layer] += transformContours(refs[rr[:glyphId]][:splines][layer], rr[:matrix])
+                end
+              end
+            end
+            nestFound = true
+          else
+            newref.push rr
+          end
+        end
+        r[:refs] = newref
+      end
+    end while nestFound
+  end
+
   def decomposeNestedGlyphs(parsedData)
     if $prm[:nestedRefs] then
       # Parse references
       refs = parseRefs(parsedData)
 
       # Dereference
-      nestFound = false
-      begin
-        nestFound = false
-        refs.each do |glyphId, r|
-          newref = []
-          r[:refs].each do |rr|
-            if refs.key?(rr[:glyphId]) then
-              refs[rr[:glyphId]][:refs].each do |subref|
-                newref.push({
-                  glyphId: subref[:glyphId], unicode: subref[:unicode],
-                  matrix: matprod(subref[:matrix], rr[:matrix]),
-                  flags: subref[:flags]
-                })
-                if refs.key?(subref[:glyphId])
-                  numOfLayers1 = r[:splines].length
-                  numOfLayers2 = refs[rr[:glyphId]][:splines].length
-                  warn "Number of layers mismatch: #{numOfLayers1} for glyph #{glyphId} and #{numOfLayers2} for glyph #{subref[:glyphId]}" if numOfLayers1 != numOfLayers2
-                  for layer in 0...([numOfLayers1, numOfLayers2].min) # unlikely mismatch
-                    r[:splines][layer] += transformContours(refs[rr[:glyphId]][:splines][layer], rr[:matrix])
-                  end
-                end
-              end
-              nestFound = true
-            else
-              newref.push rr
-            end
-          end
-          r[:refs] = newref
-        end
-      end while nestFound
+      dereferenceNestedRefs!(refs)
 
       # Clear layers
       refs.each do |glyphId, r|

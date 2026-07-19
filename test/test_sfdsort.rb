@@ -217,6 +217,31 @@ FINIS
     assert_equal [1, 0, 0, 1, 0, 0], refs[2][:refs][0][:matrix]
   end
 
+  def test_dereferenceNestedRefs
+    $prm = SFDSort.defaultSettings
+    parsed = openFont("references.sfd")
+    refute_nil parsed
+    refs = SFDSort.parseRefs(parsed)
+    assert_equal 0, refs[2][:refs][0][:glyphId]
+    assert_equal [1, 0, 0, 1, 0, 0], refs[2][:refs][0][:matrix]
+    assert_equal 2, refs[3][:refs][0][:glyphId]
+    assert_equal [1, 0, 0, 1, 0, 0], refs[3][:refs][0][:matrix]
+    assert_equal 4, refs[5][:refs][0][:glyphId]
+    assert_equal [1, 0, 0, 1, 0, 0], refs[5][:refs][0][:matrix]
+    assert_equal 3, refs[7][:refs][0][:glyphId]
+    assert_equal [1, 0, 0, 1, 0, 0], refs[7][:refs][0][:matrix]
+
+    SFDSort.dereferenceNestedRefs!(refs)
+    assert_equal 0, refs[2][:refs][0][:glyphId]
+    assert_equal [1, 0, 0, 1, 0, 0], refs[2][:refs][0][:matrix]
+    assert_equal 0, refs[3][:refs][0][:glyphId]
+    assert_equal [1, 0, 0, 1, 0, 0], refs[3][:refs][0][:matrix]
+    assert_equal 0, refs[5][:refs][0][:glyphId]
+    assert_equal refs[4][:refs][0][:matrix], refs[5][:refs][0][:matrix]
+    assert_equal 0, refs[7][:refs][0][:glyphId]
+    assert_equal [1, 0, 0, 1, 0, 0], refs[7][:refs][0][:matrix]
+  end
+
   def test_reorderSfd_nil
     $prm = SFDSort.defaultSettings
     parsed = openFont("WinOrdered.sfd")
