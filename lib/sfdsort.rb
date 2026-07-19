@@ -260,6 +260,86 @@ module SFDSort
     end while nestFound
   end
 
+  def clearLayers!(refs, parsedData)
+    # Clear layers
+    refs.each do |glyphId, r|
+      # layers = 2
+      # currentLayer = 0
+      inSplineDefinition = false
+      currentGlyph = parsedData[:glyphs][parsedData[:order][glyphId][:name]]
+      for i in 0...(currentGlyph.length)
+        l = currentGlyph[i]
+        if l =~ /^LayerCount: (\d+)$/ then
+          # layers = $1.to_i
+        elsif l =~ /^Back$/ then
+          # currentLayer = 0
+          inSplineDefinition = false
+          currentGlyph[i] = ""
+        elsif l =~ /^Fore$/ then
+          # currentLayer = 1
+          inSplineDefinition = false
+          currentGlyph[i] = ""
+        elsif l =~ /^Layer: (\d+)$/ then
+          # currentLayer = $1.to_i
+          inSplineDefinition = false
+          currentGlyph[i] = ""
+        elsif l =~ /^SplineSet$/ then
+          inSplineDefinition = true
+          currentGlyph[i] = ""
+        elsif l =~ /^EndSplineSet$/ then
+          inSplineDefinition = false
+          currentGlyph[i] = ""
+        elsif inSplineDefinition then
+          currentGlyph[i] = ""
+        end
+      end
+    end
+  end
+
+  def updateGlyphs!(refs, parsedData)
+    # Update glyphs
+    parsedData[:order].each do |g|
+      newGlyph = []
+      glyphOrder = nil
+      layers = 2
+      parsedData[:glyphs][g[:name]].each do |l|
+        if l == "" then
+          # skip
+        elsif l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
+          glyphOrder = $3.to_i
+          newGlyph.push l
+        elsif l =~ /^LayerCount: (\d+)$/ then
+          layers = $1.to_i
+          newGlyph.push l
+          if refs.key?(glyphOrder) then
+            for layer in 0...layers
+              unless refs[glyphOrder][:splines][layer].empty?
+                newGlyph.push layer == 0 ? "Back" : layer == 1 ? "Fore" : "Layer: #{layer}"
+                newGlyph.push "SplineSet"
+                newGlyph += refs[glyphOrder][:splines][layer]
+                newGlyph.push "EndSplineSet"
+              end
+            end
+          end
+          #newGlyph.push "Back"
+          #newGlyph.push "Fore"
+        elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(.+)$/ then
+          newGlyph.push l unless refs.key?(glyphOrder)
+        elsif l =~ /^EndChar$/ then
+          if refs.key?(glyphOrder) then
+            refs[glyphOrder][:refs].each do |r|
+              newGlyph.push "Refer: #{r[:glyphId]} #{r[:unicode]} N #{r[:matrix][0]} #{r[:matrix][1]} #{r[:matrix][2]} #{r[:matrix][3]} #{r[:matrix][4]} #{r[:matrix][5]} #{r[:flags]}"
+            end
+          end
+          newGlyph.push l
+        else
+          newGlyph.push l
+        end
+      end
+      parsedData[:glyphs][g[:name]] = newGlyph
+    end
+  end
+
   def decomposeNestedGlyphs(parsedData)
     if $prm[:nestedRefs] then
       # Parse references
@@ -269,80 +349,10 @@ module SFDSort
       dereferenceNestedRefs!(refs)
 
       # Clear layers
-      refs.each do |glyphId, r|
-        # layers = 2
-        # currentLayer = 0
-        inSplineDefinition = false
-        currentGlyph = parsedData[:glyphs][parsedData[:order][glyphId][:name]]
-        for i in 0...(currentGlyph.length)
-          l = currentGlyph[i]
-          if l =~ /^LayerCount: (\d+)$/ then
-            # layers = $1.to_i
-          elsif l =~ /^Back$/ then
-            # currentLayer = 0
-            inSplineDefinition = false
-            currentGlyph[i] = ""
-          elsif l =~ /^Fore$/ then
-            # currentLayer = 1
-            inSplineDefinition = false
-            currentGlyph[i] = ""
-          elsif l =~ /^Layer: (\d+)$/ then
-            # currentLayer = $1.to_i
-            inSplineDefinition = false
-            currentGlyph[i] = ""
-          elsif l =~ /^SplineSet$/ then
-            inSplineDefinition = true
-            currentGlyph[i] = ""
-          elsif l =~ /^EndSplineSet$/ then
-            inSplineDefinition = false
-            currentGlyph[i] = ""
-          elsif inSplineDefinition then
-            currentGlyph[i] = ""
-          end
-        end
-      end
+      clearLayers!(refs, parsedData)
 
       # Update glyphs
-      parsedData[:order].each do |g|
-        newGlyph = []
-        glyphOrder = nil
-        layers = 2
-        parsedData[:glyphs][g[:name]].each do |l|
-          if l == "" then
-            # skip
-          elsif l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
-            glyphOrder = $3.to_i
-            newGlyph.push l
-          elsif l =~ /^LayerCount: (\d+)$/ then
-            layers = $1.to_i
-            newGlyph.push l
-            if refs.key?(glyphOrder) then
-              for layer in 0...layers
-                unless refs[glyphOrder][:splines][layer].empty?
-                  newGlyph.push layer == 0 ? "Back" : layer == 1 ? "Fore" : "Layer: #{layer}"
-                  newGlyph.push "SplineSet"
-                  newGlyph += refs[glyphOrder][:splines][layer]
-                  newGlyph.push "EndSplineSet"
-                end
-              end
-            end
-            #newGlyph.push "Back"
-            #newGlyph.push "Fore"
-          elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(.+)$/ then
-            newGlyph.push l unless refs.key?(glyphOrder)
-          elsif l =~ /^EndChar$/ then
-            if refs.key?(glyphOrder) then
-              refs[glyphOrder][:refs].each do |r|
-                newGlyph.push "Refer: #{r[:glyphId]} #{r[:unicode]} N #{r[:matrix][0]} #{r[:matrix][1]} #{r[:matrix][2]} #{r[:matrix][3]} #{r[:matrix][4]} #{r[:matrix][5]} #{r[:flags]}"
-              end
-            end
-            newGlyph.push l
-          else
-            newGlyph.push l
-          end
-        end
-        parsedData[:glyphs][g[:name]] = newGlyph
-      end
+      updateGlyphs!(refs, parsedData)
     end
     return parsedData
   end

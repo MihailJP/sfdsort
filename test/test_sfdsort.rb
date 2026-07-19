@@ -242,6 +242,36 @@ FINIS
     assert_equal [1, 0, 0, 1, 0, 0], refs[7][:refs][0][:matrix]
   end
 
+  def test_decomposeNestedGlyphs
+    $prm = SFDSort.defaultSettings
+    parsed = openFont("references.sfd")
+    refute_nil parsed
+
+    SFDSort.decomposeNestedGlyphs(parsed)
+    refs = parsed[:glyphs]["h.0002"].select {|l| l =~ /^Refer:/}
+    refute_empty refs
+    refute refs.length > 1, "multiple 'Refer' definitions found"
+    assert_match (/^Refer: 2 /), refs[0]
+    refs = parsed[:glyphs]["hsuperior.0001"].select {|l| l =~ /^Refer:/}
+    refute_empty refs
+    refute refs.length > 1, "multiple 'Refer' definitions found"
+    assert_match (/^Refer: 4 /), refs[0]
+
+    $prm[:nestedRefs] = true
+    SFDSort.decomposeNestedGlyphs(parsed)
+    refs = parsed[:glyphs]["h.0002"].select {|l| l =~ /^Refer:/}
+    refute_empty refs
+    refute refs.length > 1, "multiple 'Refer' definitions found"
+    assert_match (/^Refer: 0 /), refs[0]
+    refs = parsed[:glyphs]["hsuperior.0001"].select {|l| l =~ /^Refer:/}
+    refute_empty refs
+    refute refs.length > 1, "multiple 'Refer' definitions found"
+    refs2 = parsed[:glyphs]["hsuperior"].select {|l| l =~ /^Refer:/}
+    refute_empty refs2
+    refute refs2.length > 1, "multiple 'Refer' definitions found"
+    assert_equal refs2[0], refs[0].gsub(/\.0\b/, "")
+  end
+
   def test_reorderSfd_nil
     $prm = SFDSort.defaultSettings
     parsed = openFont("WinOrdered.sfd")
