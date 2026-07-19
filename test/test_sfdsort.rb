@@ -2,6 +2,47 @@ require "minitest/autorun"
 require "sfdsort"
 
 class SFDSortTest < Minitest::Test
+  def openFont(filename)
+    return SFDSort.parseSfd("#{__dir__}/assets/#{filename}")
+  end
+
+  def test_parseSfd_open1
+    $prm = SFDSort.defaultSettings
+    parsed = openFont("UnicodeOrdered.sfd")
+    refute_nil parsed
+    for i in %w[a b c]
+      assert_includes parsed[:glyphs], i
+    end
+    assert_equal "h", parsed[:order][1][:name]
+    assert_equal 0x68, parsed[:order][1][:encoding]
+    assert_equal 0x68, parsed[:order][1][:unicode]
+    assert_equal 1, parsed[:order][1][:glyphOrder]
+    refute_includes parsed[:glyphs], "foo"
+    refute parsed[:encodingIsOriginal]
+  end
+
+  def test_parseSfd_open2
+    $prm = SFDSort.defaultSettings
+    parsed = openFont("GlyphOrdered-DefaultGlyphs.sfd")
+    refute_nil parsed
+    for i in %w[a b c]
+      assert_includes parsed[:glyphs], i
+    end
+    assert_equal "h", parsed[:order][1][:name]
+    assert_equal 1, parsed[:order][1][:encoding]
+    assert_equal 0x68, parsed[:order][1][:unicode]
+    assert_equal 1, parsed[:order][1][:glyphOrder]
+    refute_includes parsed[:glyphs], "foo"
+    assert parsed[:encodingIsOriginal]
+  end
+
+  def test_parseSfd_openInvalid
+    $prm = SFDSort.defaultSettings
+    assert_raises(SFDSort::InvalidFileError) do
+      openFont("NotAFont.txt")
+    end
+  end
+
   def test_sortOtfFeatName
     parsed = SFDSort.blankParsed
     $prm = SFDSort.defaultSettings

@@ -27,7 +27,7 @@ module SFDSort
 
   def parseSfd(file)
     lines = IO.readlines(file, chomp: true)
-    raise InvalidFileError("not a spline font database file") if lines[0] !~ /^SplineFontDB:/
+    raise InvalidFileError, "not a spline font database file" if lines[0] !~ /^SplineFontDB:/
     parsed = blankParsed
     currentGlyph = ""
     codeData = {}

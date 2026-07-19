@@ -1,0 +1,1 @@
+This is something other than a Fontforge project file.
