@@ -64,6 +64,22 @@ class SFDSortTest < Minitest::Test
     refute_match (/H/), flags[0]
   end
 
+  def test_parseSfd_WinInfo
+    def find_wininfo
+      parsed = openFont("HOflags.sfd")
+      refute_nil parsed
+      return parsed[:header].select {|l| l =~ /^WinInfo:/}
+    end
+
+    $prm = SFDSort.defaultSettings
+
+    $prm[:dropWinInfo] = false
+    refute_empty find_wininfo
+
+    $prm[:dropWinInfo] = true
+    assert_empty find_wininfo
+  end
+
   def test_parseSfd_OFlag
     def oflag
       parsed = openFont("HOflags.sfd")
