@@ -202,6 +202,21 @@ FINIS
     }
   end
 
+  def test_parseRefs
+    $prm = SFDSort.defaultSettings
+    parsed = openFont("references.sfd")
+    refute_nil parsed
+    refs = SFDSort.parseRefs(parsed)
+
+    refute_includes refs, 0  # non-reference glyphs shall not be listed
+    assert_empty refs[2][:splines][0]
+    assert_empty refs[2][:splines][1]
+    refute_empty refs[2][:refs]
+    assert_equal 0, refs[2][:refs][0][:glyphId]
+    assert_equal 0x68, refs[2][:refs][0][:unicode]
+    assert_equal [1, 0, 0, 1, 0, 0], refs[2][:refs][0][:matrix]
+  end
+
   def test_reorderSfd_nil
     $prm = SFDSort.defaultSettings
     parsed = openFont("WinOrdered.sfd")

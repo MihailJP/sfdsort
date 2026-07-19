@@ -180,50 +180,56 @@ module SFDSort
     return newContours
   end
 
+  def parseRefs(parsedData)
+    # Parse references
+    refs = {}
+    parsedData[:order].each do |g|
+      glyphOrder = nil
+      splines = []
+      layers = 2
+      currentLayer = 0
+      inSplineDefinition = false
+      parsedData[:glyphs][g[:name]].each do |l|
+        if l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
+          glyphOrder = $3.to_i
+        elsif l =~ /^LayerCount: (\d+)$/ then
+          layers = $1.to_i
+          splines = Array.new(layers) {[]}
+        elsif l =~ /^Back$/ then
+          currentLayer = 0
+          inSplineDefinition = false
+        elsif l =~ /^Fore$/ then
+          currentLayer = 1
+          inSplineDefinition = false
+        elsif l =~ /^Layer: (\d+)$/ then
+          currentLayer = $1.to_i
+          inSplineDefinition = false
+        elsif l =~ /^SplineSet$/ then
+          inSplineDefinition = true
+        elsif l =~ /^EndSplineSet$/ then
+          inSplineDefinition = false
+        elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(.+)$/ then
+          inSplineDefinition = false
+          if not refs.key?(glyphOrder) then
+            refs[glyphOrder] = {splines: splines, refs: []}
+          end
+          refs[glyphOrder][:refs].push({
+            glyphId: $1.to_i, unicode: $2.to_i,
+            matrix: [toval($4), toval($5), toval($6), toval($7), toval($8), toval($9)],
+            flags: $10
+          })
+        elsif inSplineDefinition then
+          splines[currentLayer].push l
+        end
+      end
+    end
+    return refs
+  end
+
   def decomposeNestedGlyphs(parsedData)
     if $prm[:nestedRefs] then
       # Parse references
-      refs = {}
-      parsedData[:order].each do |g|
-        glyphOrder = nil
-        splines = []
-        layers = 2
-        currentLayer = 0
-        inSplineDefinition = false
-        parsedData[:glyphs][g[:name]].each do |l|
-          if l =~ /^Encoding:\s+(\d+)\s+(-1|\d+)\s+(\d+)$/ then
-            glyphOrder = $3.to_i
-          elsif l =~ /^LayerCount: (\d+)$/ then
-            layers = $1.to_i
-            splines = Array.new(layers) {[]}
-          elsif l =~ /^Back$/ then
-            currentLayer = 0
-            inSplineDefinition = false
-          elsif l =~ /^Fore$/ then
-            currentLayer = 1
-            inSplineDefinition = false
-          elsif l =~ /^Layer: (\d+)$/ then
-            currentLayer = $1.to_i
-            inSplineDefinition = false
-          elsif l =~ /^SplineSet$/ then
-            inSplineDefinition = true
-          elsif l =~ /^EndSplineSet$/ then
-            inSplineDefinition = false
-          elsif l =~ /^Refer:\s+(\d+)\s+(-1|\d+)\s+(\S+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)\s+(.+)$/ then
-            inSplineDefinition = false
-            if not refs.key?(glyphOrder) then
-              refs[glyphOrder] = {splines: splines, refs: []}
-            end
-            refs[glyphOrder][:refs].push({
-              glyphId: $1.to_i, unicode: $2.to_i,
-              matrix: [toval($4), toval($5), toval($6), toval($7), toval($8), toval($9)],
-              flags: $10
-            })
-          elsif inSplineDefinition then
-            splines[currentLayer].push l
-          end
-        end
-      end
+      refs = parseRefs(parsedData)
 
       # Dereference
       nestFound = false

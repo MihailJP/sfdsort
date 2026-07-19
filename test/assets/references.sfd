@@ -1,0 +1,207 @@
+SplineFontDB: 3.2
+FontName: Untitled1
+FullName: Untitled1
+FamilyName: Untitled1
+Weight: Regular
+Copyright: Copyright (c) 2026, MihailJP
+UComments: "2026-7-19: Created with FontForge (http://fontforge.org)"
+Version: 001.000
+ItalicAngle: 0
+UnderlinePosition: -100
+UnderlineWidth: 50
+Ascent: 800
+Descent: 200
+InvalidEm: 0
+LayerCount: 3
+Layer: 0 0 "+gMyXYgAA" 1
+Layer: 1 0 "+Uk2XYgAA" 0
+Layer: 2 0 "Layer2" 0
+XUID: [1021 1008 -2030067150 5217283]
+FSType: 0
+OS2Version: 0
+OS2_WeightWidthSlopeOnly: 0
+OS2_UseTypoMetrics: 1
+CreationTime: 1784427397
+ModificationTime: 1784463803
+PfmFamily: 17
+TTFWeight: 400
+TTFWidth: 5
+LineGap: 90
+VLineGap: 0
+OS2TypoAscent: 0
+OS2TypoAOffset: 1
+OS2TypoDescent: 0
+OS2TypoDOffset: 1
+OS2TypoLinegap: 90
+OS2WinAscent: 0
+OS2WinAOffset: 1
+OS2WinDescent: 0
+OS2WinDOffset: 1
+HheadAscent: 0
+HheadAOffset: 1
+HheadDescent: 0
+HheadDOffset: 1
+OS2Vendor: 'PfEd'
+MarkAttachClasses: 1
+DEI: 91125
+LangName: 1033
+Encoding: Custom
+UnicodeInterp: none
+NameList: AGL For New Fonts
+DisplaySize: -36
+AntiAlias: 1
+FitToEm: 0
+WinInfo: 0 32 8
+BeginPrivate: 0
+EndPrivate
+TeXData: 1 0 0 346030 173015 115343 484442 1048576 115343 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
+BeginChars: 7 7
+
+StartChar: h
+Encoding: 0 104 0
+Width: 700
+Flags: HW
+LayerCount: 3
+Fore
+SplineSet
+136 642 m 29
+ 229 720 l 29
+ 235 378 l 29
+ 526 519 l 29
+ 526 69 l 29
+ 409 -159 l 29
+ 466 60 l 29
+ 442 429 l 29
+ 226 336 l 29
+ 226 54 l 29
+ 169 0 l 29
+ 136 642 l 29
+EndSplineSet
+EndChar
+
+StartChar: o
+Encoding: 1 111 1
+Width: 700
+Flags: HW
+LayerCount: 3
+Back
+SplineSet
+310 399 m 1
+ 202 336 l 25
+ 193 186 l 25
+ 328 45 l 1
+ 457 137 l 25
+ 448 330 l 1
+ 310 399 l 1
+319 462 m 1
+ 520 366 l 25
+ 541 141 l 25
+ 316 -12 l 1
+ 118 126 l 25
+ 130 330 l 25
+ 319 462 l 1
+EndSplineSet
+Fore
+SplineSet
+310 399 m 1
+ 202 336 l 25
+ 193 186 l 25
+ 328 45 l 1
+ 457 137 l 25
+ 448 330 l 1
+ 310 399 l 1
+319 462 m 1
+ 520 366 l 25
+ 541 141 l 25
+ 316 -12 l 1
+ 118 126 l 25
+ 130 330 l 25
+ 319 462 l 1
+EndSplineSet
+Layer: 2
+SplineSet
+310 399 m 5
+ 202 336 l 29
+ 193 186 l 29
+ 328 45 l 5
+ 457 137 l 29
+ 448 330 l 5
+ 310 399 l 5
+319 462 m 5
+ 520 366 l 29
+ 541 141 l 29
+ 316 -12 l 5
+ 118 126 l 29
+ 130 330 l 29
+ 319 462 l 5
+EndSplineSet
+EndChar
+
+StartChar: h.0001
+Encoding: 3 -1 2
+Width: 700
+Flags: HW
+LayerCount: 3
+Fore
+Refer: 0 104 N 1 0 0 1 0 0 2
+EndChar
+
+StartChar: h.0002
+Encoding: 4 -1 3
+Width: 700
+Flags: HW
+LayerCount: 3
+Fore
+Refer: 2 -1 N 1 0 0 1 0 0 2
+EndChar
+
+StartChar: hsuperior
+Encoding: 2 688 4
+Width: 700
+Flags: HW
+LayerCount: 3
+Fore
+Refer: 0 104 S 0.602564 0 0 0.403868 54.0513 429.215 2
+EndChar
+
+StartChar: hsuperior.0001
+Encoding: 5 -1 5
+Width: 700
+Flags: HW
+LayerCount: 3
+Fore
+Refer: 4 688 N 1 0 0 1 0 0 2
+EndChar
+
+StartChar: dotlessj
+Encoding: 6 567 6
+Width: 700
+Flags: HW
+LayerCount: 3
+Back
+SplineSet
+136 642 m 29
+ 229 720 l 29
+ 235 378 l 29
+ 526 519 l 29
+ 526 69 l 29
+ 409 -159 l 29
+ 466 60 l 29
+ 442 429 l 29
+ 226 336 l 29
+ 226 54 l 29
+ 169 0 l 29
+ 136 642 l 29
+EndSplineSet
+Fore
+SplineSet
+320 519 m 29
+ 320 69 l 29
+ 203 -159 l 29
+ 260 60 l 29
+ 233 474 l 29
+ 320 519 l 29
+EndSplineSet
+EndChar
+EndChars
+EndSplineFont
