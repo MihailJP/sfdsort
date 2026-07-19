@@ -139,6 +139,16 @@ Encoding: UnicodeFull
 FINIS
   end
 
+  def test_moveGlyphToTop
+    $prm = SFDSort.defaultSettings
+    parsed = openFont("UnicodeOrdered.sfd")
+    refute_nil parsed
+    assert_nil SFDSort.moveGlyphToTop(parsed, "nonexistentGlyph")
+    assert_equal "T", parsed[:order][0][:name]
+    assert_equal "a", SFDSort.moveGlyphToTop(parsed, "a")
+    assert_equal "a", parsed[:order][0][:name]
+  end
+
   def check_type_and_value(expected, actual)
     assert_equal expected, actual
     assert_kind_of expected.class, actual
