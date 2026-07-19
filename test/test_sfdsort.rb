@@ -160,4 +160,176 @@ FINIS
     check_type_and_value 6.5, SFDSort.toval("6.5")
     check_type_and_value (-1.25), SFDSort.toval("-1.25")
   end
+
+  def test_reorderSfd_nil
+    $prm = SFDSort.defaultSettings
+    parsed = openFont("WinOrdered.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal "T", result[:order][0][:name]
+    assert_equal "h", result[:order][1][:name]
+    assert_equal "e", result[:order][2][:name]
+    assert_equal "ae", result[:order][27][:name]
+    assert_equal "oe", result[:order][28][:name]
+  end
+
+  def test_reorderSfd_encoding
+    $prm = SFDSort.defaultSettings
+    $prm[:order] = 0
+
+    parsed = openFont("WinOrdered.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal "T", result[:order][0][:name]
+    assert_equal "a", result[:order][1][:name]
+    assert_equal "b", result[:order][2][:name]
+    assert_equal "oe", result[:order][27][:name]
+    assert_equal "ae", result[:order][28][:name]
+  end
+
+  def test_reorderSfd_Unicode_1
+    $prm = SFDSort.defaultSettings
+    $prm[:order] = 1
+
+    parsed = openFont("GlyphOrdered-DefaultGlyphs.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal ".null", result[:order][0][:name]
+    assert_equal "nonmarkingreturn", result[:order][1][:name]
+    assert_equal "T", result[:order][2][:name]
+    assert_equal "a", result[:order][3][:name]
+    assert_equal "b", result[:order][4][:name]
+    assert_equal ".notdef", result[:order][-1][:name]
+  end
+
+
+  def test_reorderSfd_Unicode_2
+    $prm = SFDSort.defaultSettings
+    $prm[:order] = 1
+
+    parsed = openFont("WinOrdered2.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal "T", result[:order][0][:name]
+    assert_equal "a", result[:order][1][:name]
+    assert_equal "b", result[:order][2][:name]
+    assert_equal "ae", result[:order][-4][:name]
+    assert_equal "oe", result[:order][-3][:name]
+    assert_equal "a.0001", result[:order][-2][:name]
+    assert_equal "g.0001", result[:order][-1][:name]
+  end
+
+  def test_reorderSfd_alphabetic
+    $prm = SFDSort.defaultSettings
+    $prm[:order] = 2
+
+    parsed = openFont("GlyphOrdered-DefaultGlyphs.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal ".notdef", result[:order][0][:name]
+    assert_equal ".null", result[:order][1][:name]
+    assert_equal "T", result[:order][2][:name]
+    assert_equal "a", result[:order][3][:name]
+    assert_equal "b", result[:order][4][:name]
+    assert_equal "n", result[:order][16][:name]
+    assert_equal "nonmarkingreturn", result[:order][17][:name]
+    assert_equal "o", result[:order][18][:name]
+  end
+
+  def test_reorderSfd_custom
+    $prm = SFDSort.defaultSettings
+    $prm[:glyphOrderFile] = "#{__dir__}/assets/etaoin.txt"
+
+    parsed = openFont("WinOrdered.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal "e", result[:order][0][:name]
+    assert_equal "t", result[:order][1][:name]
+    assert_equal "a", result[:order][2][:name]
+    assert_equal "o", result[:order][3][:name]
+    assert_equal "i", result[:order][4][:name]
+    assert_equal "n", result[:order][5][:name]
+    assert_equal "T", result[:order][6][:name]
+    assert_equal "h", result[:order][7][:name]
+    assert_equal "q", result[:order][8][:name]
+  end
+
+  def test_reorderSfd_custom_alpha
+    $prm = SFDSort.defaultSettings
+    $prm[:glyphOrderFile] = "#{__dir__}/assets/etaoin.txt"
+    $prm[:order] = 2
+
+    parsed = openFont("WinOrdered.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal "e", result[:order][0][:name]
+    assert_equal "t", result[:order][1][:name]
+    assert_equal "a", result[:order][2][:name]
+    assert_equal "o", result[:order][3][:name]
+    assert_equal "i", result[:order][4][:name]
+    assert_equal "n", result[:order][5][:name]
+    assert_equal "T", result[:order][6][:name]
+    assert_equal "ae", result[:order][7][:name]
+    assert_equal "b", result[:order][8][:name]
+    assert_equal "c", result[:order][9][:name]
+  end
+
+  def test_reorderSfd_nonexistentGlyph
+    $prm = SFDSort.defaultSettings
+    $prm[:glyphOrderFile] = "#{__dir__}/assets/nonexistentGlyph.txt"
+
+    parsed = openFont("WinOrdered.sfd")
+    refute_nil parsed
+    assert_output("", /Glyph "absent" not found/) {
+      SFDSort.reorderSfd(parsed)
+    }
+  end
+
+  def test_reorderSfd_defaultFirst
+    $prm = SFDSort.defaultSettings
+
+    parsed = openFont("UnicodeOrdered.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal "T", result[:order][0][:name]
+
+    parsed = openFont("GlyphOrdered-DefaultGlyphs.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal "T", result[:order][0][:name]
+
+    $prm[:defaultFirst] = true
+
+    parsed = openFont("UnicodeOrdered.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal "T", result[:order][0][:name]
+
+    parsed = openFont("GlyphOrdered-DefaultGlyphs.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal ".notdef", result[:order][0][:name]
+  end
+
+  def test_reorderSfd_custom_defaultFirst
+    $prm = SFDSort.defaultSettings
+    $prm[:defaultFirst] = true
+    $prm[:glyphOrderFile] = "#{__dir__}/assets/etaoin.txt"
+
+    parsed = openFont("GlyphOrdered-DefaultGlyphs.sfd")
+    refute_nil parsed
+    result = SFDSort.reorderSfd(parsed)
+    assert_equal ".notdef", result[:order][0][:name]
+    assert_equal ".null", result[:order][1][:name]
+    assert_equal "nonmarkingreturn", result[:order][2][:name]
+    assert_equal "e", result[:order][3][:name]
+    assert_equal "t", result[:order][4][:name]
+    assert_equal "a", result[:order][5][:name]
+    assert_equal "o", result[:order][6][:name]
+    assert_equal "i", result[:order][7][:name]
+    assert_equal "n", result[:order][8][:name]
+    assert_equal "T", result[:order][9][:name]
+    assert_equal "h", result[:order][10][:name]
+    assert_equal "q", result[:order][11][:name]
+  end
 end
