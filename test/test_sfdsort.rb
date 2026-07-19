@@ -161,6 +161,47 @@ FINIS
     check_type_and_value (-1.25), SFDSort.toval("-1.25")
   end
 
+  def test_matprod
+    assert_equal [25, 28, 57, 64, 100, 112], SFDSort.matprod(
+      [1, 2, 3, 4, 5, 6],
+      [7, 8, 9, 10, 11, 12],
+    )
+  end
+
+  def test_affinetransform
+    assert_equal [12, 16], SFDSort.affinetransform(1, 2, [1, 2, 3, 4, 5, 6])
+  end
+
+  def test_transformContours_linear
+    assert_equal(
+      ["75 106 m"],
+      SFDSort.transformContours(["10 20 m"], [1, 2, 3, 4, 5, 6]),
+    )
+  end
+
+  def test_transformContours_quadratic
+    assert_equal(
+      ["75 106 m", " 28 40 36 52 c"],
+      SFDSort.transformContours(["10 20 m"," 5 6 7 8 c"], [1, 2, 3, 4, 5, 6]),
+    )
+  end
+
+  def test_transformContours_cubic
+    assert_equal(
+      ["75 106 m", " 20 28 28 40 36 52 c"],
+      SFDSort.transformContours(["10 20 m"," 3 4 5 6 7 8 c"], [1, 2, 3, 4, 5, 6]),
+    )
+  end
+
+  def test_transformContours_malformed
+    assert_output("", /Malformed spline definition: foo/) {
+      assert_equal(
+        ["foo"],
+        SFDSort.transformContours(["foo"], [1, 2, 3, 4, 5, 6])
+      )
+    }
+  end
+
   def test_reorderSfd_nil
     $prm = SFDSort.defaultSettings
     parsed = openFont("WinOrdered.sfd")
