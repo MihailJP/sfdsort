@@ -6,7 +6,7 @@ class SFDSortTest < Minitest::Test
     return SFDSort.parseSfd("#{__dir__}/assets/#{filename}")
   end
 
-  def test_parseSfd_open1
+  def test_parseSfd_open_UnicodeOrdered
     $prm = SFDSort.defaultSettings
     parsed = openFont("UnicodeOrdered.sfd")
     refute_nil parsed
@@ -21,7 +21,7 @@ class SFDSortTest < Minitest::Test
     refute parsed[:encodingIsOriginal]
   end
 
-  def test_parseSfd_open2
+  def test_parseSfd_open_GlyphOrdered
     $prm = SFDSort.defaultSettings
     parsed = openFont("GlyphOrdered-DefaultGlyphs.sfd")
     refute_nil parsed
@@ -41,6 +41,48 @@ class SFDSortTest < Minitest::Test
     assert_raises(SFDSort::InvalidFileError) do
       openFont("NotAFont.txt")
     end
+  end
+
+  def test_parseSfd_HFlag
+    def hflag
+      parsed = openFont("HOflags.sfd")
+      refute_nil parsed
+      flags = parsed[:glyphs]["h"].select {|l| l =~ /^Flags:/}
+      refute_empty flags
+      refute flags.length > 1, "multiple 'Flags' definitions found"
+      return flags
+    end
+
+    $prm = SFDSort.defaultSettings
+
+    $prm[:dropFlagH] = false
+    flags = hflag
+    assert_match (/H/), flags[0]
+
+    $prm[:dropFlagH] = true
+    flags = hflag
+    refute_match (/H/), flags[0]
+  end
+
+  def test_parseSfd_OFlag
+    def oflag
+      parsed = openFont("HOflags.sfd")
+      refute_nil parsed
+      flags = parsed[:glyphs]["o"].select {|l| l =~ /^Flags:/}
+      refute_empty flags
+      refute flags.length > 1, "multiple 'Flags' definitions found"
+      return flags
+    end
+
+    $prm = SFDSort.defaultSettings
+
+    $prm[:dropFlagO] = false
+    flags = oflag
+    assert_match (/O/), flags[0]
+
+    $prm[:dropFlagO] = true
+    flags = oflag
+    refute_match (/O/), flags[0]
   end
 
   def test_sortOtfFeatName
